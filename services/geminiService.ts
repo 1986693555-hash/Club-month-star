@@ -18,8 +18,8 @@ const getAI = () => {
 const removeWhiteBackground = (base64Data: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') {
-        resolve(base64Data);
-        return;
+      resolve(base64Data);
+      return;
     }
     const img = new Image();
     img.onload = () => {
@@ -28,34 +28,43 @@ const removeWhiteBackground = (base64Data: string): Promise<string> => {
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-          resolve(base64Data);
-          return;
+        resolve(base64Data);
+        return;
       }
-      
+
       ctx.drawImage(img, 0, 0);
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imgData.data;
-      
+
       // Loop through pixels
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
-        
-        // Threshold for "White" (e.g., > 240)
-        // We also check if pixels are roughly equal to avoid cutting out light skin/clothing that isn't pure white/grey
-        if (r > 240 && g > 240 && b > 240) {
-            // Soft feathering could be done here, but hard cut for now
-            data[i + 3] = 0; // Set Alpha to 0
+
+        // Use a "fuzziness" tolerance. 
+        // Distance from pure white (255, 255, 255)
+        const diff = Math.sqrt(
+          Math.pow(255 - r, 2) +
+          Math.pow(255 - g, 2) +
+          Math.pow(255 - b, 2)
+        );
+
+        // If distance is within 45 (approx 15% range), assume it's background
+        if (diff < 60) {
+          data[i + 3] = 0; // Transparent
+        } else if (diff < 90) {
+          // Slight feathered edge
+          data[i + 3] = ((diff - 60) / 30) * 255;
         }
       }
-      
+
       ctx.putImageData(imgData, 0, 0);
       resolve(canvas.toDataURL('image/png'));
     };
     img.onerror = (e) => {
-        console.error("Image load failed for bg removal", e);
-        resolve(base64Data);
+      console.error("Image load failed for bg removal", e);
+      resolve(base64Data);
     };
     // Ensure base64 prefix
     img.src = base64Data.startsWith('data:') ? base64Data : `data:image/jpeg;base64,${base64Data}`;
@@ -69,8 +78,8 @@ export const generateQuote = async (studentName: string, awardType: AwardType): 
   try {
     const ai = getAI();
     // Using a lighter model for text
-    const model = "gemini-3-flash-preview"; 
-    
+    const model = "gemini-3-flash-preview";
+
     const prompt = `
       You are a passionate basketball coach for "Li Yuanyu Basketball Club".
       Write a short, punchy, inspiring quote (max 15 words) in Chinese for a student named ${studentName}.
@@ -126,13 +135,13 @@ export const processImageBackground = async (base64Image: string): Promise<strin
     if (candidates && candidates.length > 0) {
       for (const part of candidates[0].content.parts) {
         if (part.inlineData && part.inlineData.data) {
-           const generatedBase64 = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-           // Post-process to remove the white background we requested
-           return await removeWhiteBackground(generatedBase64);
+          const generatedBase64 = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          // Post-process to remove the white background we requested
+          return await removeWhiteBackground(generatedBase64);
         }
       }
     }
-    
+
     throw new Error("No image generated");
 
   } catch (error) {
@@ -168,7 +177,7 @@ export const editImageWithGemini = async (base64Image: string, prompt: string): 
     if (candidates && candidates.length > 0) {
       for (const part of candidates[0].content.parts) {
         if (part.inlineData && part.inlineData.data) {
-           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
       }
     }
@@ -185,7 +194,7 @@ export const fileToBase64 = (file: File): Promise<string> => {
     reader.readAsDataURL(file);
     reader.onload = () => {
       const result = reader.result as string;
-      const base64Data = result.split(',')[1]; 
+      const base64Data = result.split(',')[1];
       resolve(base64Data);
     };
     reader.onerror = error => reject(error);

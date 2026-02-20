@@ -195,7 +195,10 @@ export default function App() {
 
     setState(prev => ({
       ...prev,
-      selectedWinners: [demoWinner],
+      selectedWinners: [{
+        ...demoWinner,
+        imageUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=60'
+      }],
       step: 'IMAGES'
     }));
   };
@@ -354,9 +357,11 @@ export default function App() {
             <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl justify-center">
               {/* Current Month */}
               <div className="flex-1 bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-blue-500 transition-all group relative">
-                <div className="absolute top-2 right-2 text-green-500">
-                  <CheckCircle size={20} />
-                </div>
+                {state.currentMonthData.length > 0 && (
+                  <div className="absolute top-2 right-2 text-green-500">
+                    <CheckCircle size={20} />
+                  </div>
+                )}
                 <h3 className="font-bold text-lg mb-2 text-white">1. 本月数据 (必须)</h3>
                 <p className="text-xs text-slate-400 mb-4">包含: 姓名, 校区, 出勤次数</p>
                 <div className="relative">
@@ -838,8 +843,3 @@ export default function App() {
     </div>
   );
 }
-
-// Icon helper
-const CheckCircleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-);
