@@ -210,12 +210,12 @@ const PosterCanvas: React.FC<PosterCanvasProps> = ({ winner, template, id, perio
                 {statLabel}
               </span>
 
-              {/* Number Display - Adjusted for level alignment and better spacing */}
-              <div className="flex items-end justify-end gap-1 -mt-2">
-                <span className="text-[7.5rem] font-teko font-black text-white leading-none tracking-tighter drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]">
+              {/* Number Display - Rock solid alignment */}
+              <div className="flex items-baseline justify-end gap-1 -mt-3">
+                <span className="text-[7.5rem] font-teko font-black text-white leading-[0.7] tracking-tighter drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]">
                   {winner.statValue}
                 </span>
-                <span className="text-3xl font-black text-white italic pb-3">
+                <span className="text-4xl font-black text-white px-1">
                   {statUnit}
                 </span>
               </div>

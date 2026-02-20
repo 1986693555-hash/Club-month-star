@@ -16,7 +16,7 @@ const getAI = () => {
  * we need to make it transparent manually for the poster.
  */
 const removeWhiteBackground = (base64Data: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (typeof window === 'undefined') {
       resolve(base64Data);
       return;
@@ -35,27 +35,32 @@ const removeWhiteBackground = (base64Data: string): Promise<string> => {
       ctx.drawImage(img, 0, 0);
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imgData.data;
+      const width = canvas.width;
+      const height = canvas.height;
 
-      // Loop through pixels
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
+      // Flood Fill / Connectivity based removal
+      // We'll mark background pixels starting from the corners
+      const visited = new Uint8Array(width * height);
+      const stack = [[0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1]];
 
-        // Use a "fuzziness" tolerance. 
-        // Distance from pure white (255, 255, 255)
-        const diff = Math.sqrt(
-          Math.pow(255 - r, 2) +
-          Math.pow(255 - g, 2) +
-          Math.pow(255 - b, 2)
-        );
+      const isWhite = (r: number, g: number, b: number) => {
+        // Distance from white
+        const d = Math.sqrt((255 - r) ** 2 + (255 - g) ** 2 + (255 - b) ** 2);
+        return d < 80; // Tolerance
+      };
 
-        // If distance is within 45 (approx 15% range), assume it's background
-        if (diff < 60) {
-          data[i + 3] = 0; // Transparent
-        } else if (diff < 90) {
-          // Slight feathered edge
-          data[i + 3] = ((diff - 60) / 30) * 255;
+      while (stack.length > 0) {
+        const [x, y] = stack.pop()!;
+        const idx = y * width + x;
+
+        if (x < 0 || x >= width || y < 0 || y >= height || visited[idx]) continue;
+
+        const p = idx * 4;
+        if (isWhite(data[p], data[p + 1], data[p + 2])) {
+          visited[idx] = 1;
+          data[p + 3] = 0; // Set Alpha to 0
+
+          stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
         }
       }
 
@@ -112,8 +117,8 @@ export const processImageBackground = async (base64Image: string): Promise<strin
     const ai = getAI();
     const model = "gemini-2.5-flash-image";
 
-    // Prompt optimized for subsequent removal
-    const prompt = "Re-generate this person on a pure solid white background (#FFFFFF). Keep the person exactly the same. Ensure full body is visible. High contrast between subject and background.";
+    // Enhanced Prompt for cleaner segmentation
+    const prompt = "Re-generate this person on a PURE solid white (#FFFFFF) background. Remove all shadows, ground textures, and environmental details. Studio lighting. Return ONLY the person centered on white.";
 
     const response = await ai.models.generateContent({
       model,
