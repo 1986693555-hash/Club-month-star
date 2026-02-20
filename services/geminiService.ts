@@ -44,23 +44,31 @@ const removeWhiteBackground = (base64Data: string): Promise<string> => {
       const stack = [[0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1]];
 
       const isWhite = (r: number, g: number, b: number) => {
-        // Distance from white
+        // Distance from white - more aggressive for non-perfect backgrounds
         const d = Math.sqrt((255 - r) ** 2 + (255 - g) ** 2 + (255 - b) ** 2);
-        return d < 80; // Tolerance
+        return d < 120; // Increased tolerance
       };
 
-      while (stack.length > 0) {
-        const [x, y] = stack.pop()!;
-        const idx = y * width + x;
+      // Seed points: all corners and edges to ensure full entry
+      for (let x = 0; x < width; x += Math.floor(width / 5)) {
+        stack.push([x, 0], [x, height - 1]);
+      }
+      for (let y = 0; y < height; y += Math.floor(height / 5)) {
+        stack.push([0, y], [width - 1, y]);
+      }
 
-        if (x < 0 || x >= width || y < 0 || y >= height || visited[idx]) continue;
+      while (stack.length > 0) {
+        const [currX, currY] = stack.pop()!;
+        const idx = currY * width + currX;
+
+        if (currX < 0 || currX >= width || currY < 0 || currY >= height || visited[idx]) continue;
 
         const p = idx * 4;
         if (isWhite(data[p], data[p + 1], data[p + 2])) {
           visited[idx] = 1;
-          data[p + 3] = 0; // Set Alpha to 0
+          data[p + 3] = 0; // Transparent
 
-          stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+          stack.push([currX + 1, currY], [currX - 1, currY], [currX, currY + 1], [currX, currY - 1]);
         }
       }
 

@@ -199,23 +199,23 @@ const PosterCanvas: React.FC<PosterCanvasProps> = ({ winner, template, id, perio
             </div>
           </div>
 
-          {/* 5. Stats Block - FIX OVERLAP & TIGHTER */}
-          <div className="relative w-full flex flex-col items-end mt-8">
+          {/* 5. Stats Block - PIXEL PERFECT ALIGNMENT */}
+          <div className="relative w-full flex flex-col items-end mt-12">
             {/* Stats Background Card Effect */}
             <div className="absolute inset-y-[-10px] inset-x-[-20px] bg-gradient-to-r from-blue-600/0 to-blue-900/60 transform skew-x-[-12deg] border-r-4 border-white/10 rounded-r-xl"></div>
 
             <div className="relative z-10 flex flex-col items-end">
-              {/* Label - Properly spaced to avoid overlap */}
-              <span className="text-blue-200 text-base font-bold uppercase tracking-[0.2em] mb-0 block text-right drop-shadow-md">
+              {/* Label */}
+              <span className="text-blue-200 text-sm font-bold uppercase tracking-[0.2em] mb-1 block text-right drop-shadow-md">
                 {statLabel}
               </span>
 
-              {/* Number Display - Rock solid alignment */}
-              <div className="flex items-baseline justify-end gap-1 -mt-3">
-                <span className="text-[7.5rem] font-teko font-black text-white leading-[0.7] tracking-tighter drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]">
+              {/* Number Display - Baseline alignment */}
+              <div className="flex items-baseline justify-end gap-1">
+                <span className="text-[8.5rem] font-teko font-black text-white leading-[0.7] tracking-tighter drop-shadow-[0_0_40px_rgba(59,130,246,0.5)]">
                   {winner.statValue}
                 </span>
-                <span className="text-4xl font-black text-white px-1">
+                <span className="text-4xl font-black text-white italic transform -translate-y-1">
                   {statUnit}
                 </span>
               </div>
